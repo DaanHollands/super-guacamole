@@ -10,15 +10,21 @@ set -ouex pipefail
 # https://mirrors.rpmfusion.org/mirrorlist?path=free/fedora/updates/43/x86_64/repoview/index.html&protocol=https&redirect=1
 
 # this installs a package from fedora repos
-dnf5 install -y tmux 
 
-# Use a COPR Example:
-#
-# dnf5 -y copr enable ublue-os/staging
-# dnf5 -y install package
-# Disable COPRs so they don't end up enabled on the final image:
-# dnf5 -y copr disable ublue-os/staging
+dnf5 -y copr enable yalter/niri
+dnf5 -y copr enable avengemedia/dms
+dnf5 -y copr enable crashdummy/Displaylink
+dnf5 -y copr enable scottames/ghostty
+dnf5 -y copr enable scottames/vicinae
 
-#### Example for enabling a System Unit File
+dnf5 -y install displaylink dms ghostty niri vicinae wiremix wl-mirror tailscale
+
+dnf5 -y copr disable yalter/niri
+dnf5 -y copr disable avengemedia/dms
+dnf5 -y copr disable crashdummy/Displaylink
+dnf5 -y copr disable scottames/ghostty
+dnf5 -y copr disable scottames/vicinae
+
 
 systemctl enable podman.socket
+systemctl enable tailscaled
