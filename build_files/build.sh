@@ -29,3 +29,4 @@ dnf5 -y copr disable scottames/vicinae
 
 systemctl enable podman.socket
 systemctl enable tailscaled
+systemctl enable libvirtd
