@@ -18,6 +18,7 @@ dnf5 -y copr enable scottames/ghostty
 dnf5 -y copr enable scottames/vicinae
 
 dnf5 -y install displaylink dms ghostty niri vicinae wiremix wl-mirror tailscale
+dnf5 -y group install virtualization
 
 dnf5 -y copr disable yalter/niri
 dnf5 -y copr disable avengemedia/dms
