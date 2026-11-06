@@ -26,12 +26,15 @@ done
 # Remove conflicting packages
 # dnf5 -y remove dkms-logitech-trueforce logitech-trueforce
 
-# Install evdi
-dnf5 -y install kmod-evdi
-
 # Install packages
-dnf5 -y install displaylink dms ghostty niri vicinae wiremix wl-mirror tailscale
+dnf5 -y install dms ghostty niri vicinae wiremix wl-mirror tailscale
 dnf5 -y group install virtualization
+
+# Fetch the displaylink RPM and install it without dependency checks
+mkdir -p /tmp/dl && cd /tmp/dl
+dnf5 download displaylink
+rpm -ivh --nodeps displaylink-*.rpm
+cd / && rm -rf /tmp/dl
 
 # Disable COPR repos one by one
 for repo in "${COPR_REPOS[@]}"; do
