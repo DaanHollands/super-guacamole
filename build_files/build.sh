@@ -18,8 +18,10 @@ COPR_REPOS=(
     scottames/vicinae
 )
 
-# Enable COPR repos
-dnf5 -y copr enable "${COPR_REPOS[@]}"
+# Enable COPR repos one by one
+for repo in "${COPR_REPOS[@]}"; do
+    dnf5 -y copr enable "$repo"
+done
 
 # Remove conflicting packages
 dnf5 -y remove dkms-logitech-trueforce logitech-trueforce
@@ -28,8 +30,10 @@ dnf5 -y remove dkms-logitech-trueforce logitech-trueforce
 dnf5 -y install displaylink dms ghostty niri vicinae wiremix wl-mirror tailscale
 dnf5 -y group install virtualization
 
-# Disable COPR repos in a single command 
-dnf5 -y copr disable "${COPR_REPOS[@]}"
+# Disable COPR repos one by one
+for repo in "${COPR_REPOS[@]}"; do
+    dnf5 -y copr disable "$repo"
+done
 
 # Enable systemd services in a single command
 systemctl enable podman.socket tailscaled virtqemud virtnetworkd virtstoraged
