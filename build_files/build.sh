@@ -9,27 +9,28 @@ set -ouex pipefail
 # List of rpmfusion packages can be found here:
 # https://mirrors.rpmfusion.org/mirrorlist?path=free/fedora/updates/43/x86_64/repoview/index.html&protocol=https&redirect=1
 
-# this installs a package from fedora repos
+# Used COPR repositories
+COPR_REPOS=(
+    yalter/niri
+    duxlabs/dms
+    duxlabs/dux-repo
+    crashdummy/Displaylink
+    scottames/ghostty
+    scottames/vicinae
+)
 
-dnf5 -y copr enable yalter/niri
-dnf5 -y copr enable duxlabs/dms
-dnf5 -y copr enable duxlabs/dux-repo
-dnf5 -y copr enable crashdummy/Displaylink
-dnf5 -y copr enable scottames/ghostty
-dnf5 -y copr enable scottames/vicinae
+# Enable COPR repos
+dnf5 -y copr enable "${COPR_REPOS[@]}"
 
+# Remove conflicting packages
 dnf5 -y remove dkms-logitech-trueforce logitech-trueforce
 
+# Install packages
 dnf5 -y install displaylink dms ghostty niri vicinae wiremix wl-mirror tailscale
 dnf5 -y group install virtualization
 
-dnf5 -y copr disable yalter/niri
-dnf5 -y copr disable avengemedia/dms
-dnf5 -y copr disable crashdummy/Displaylink
-dnf5 -y copr disable scottames/ghostty
-dnf5 -y copr disable scottames/vicinae
+# Disable COPR repos in a single command 
+dnf5 -y copr disable "${COPR_REPOS[@]}"
 
-
-systemctl enable podman.socket
-systemctl enable tailscaled
-systemctl enable virtqemud virtnetworkd virtstoraged
+# Enable systemd services in a single command
+systemctl enable podman.socket tailscaled virtqemud virtnetworkd virtstoraged
