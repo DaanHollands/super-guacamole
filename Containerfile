@@ -29,6 +29,9 @@ FROM ghcr.io/ublue-os/bazzite-nvidia-open:stable
 ## make modifications desired in your image and install packages by modifying the build.sh script
 ## the following RUN directive does all the things required to run "build.sh" as recommended.
 
+# Copy from extra akmods repo for evdi
+COPY --from=ghcr.io/ublue-os/akmods-extra:main-45 /rpms/ /tmp/akmods-rpms/
+
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
