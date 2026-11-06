@@ -17,6 +17,8 @@ dnf5 -y copr enable crashdummy/Displaylink
 dnf5 -y copr enable scottames/ghostty
 dnf5 -y copr enable scottames/vicinae
 
+dnf5 -y remove dkms-logitech-trueforce logitech-trueforce
+
 dnf5 -y install displaylink dms ghostty niri vicinae wiremix wl-mirror tailscale
 dnf5 -y group install virtualization
 
