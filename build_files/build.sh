@@ -24,10 +24,19 @@ for repo in "${COPR_REPOS[@]}"; do
 done
 
 # Remove conflicting packages
-dnf5 -y remove dkms-logitech-trueforce logitech-trueforce
+# dnf5 -y remove dkms-logitech-trueforce logitech-trueforce
 
-# Install evdi from akmods repo
-dnf5 -y install /tmp/akmods-rpms/kmods/*evdi*.rpm
+# Find evdi in akmods repo
+EVDI_RPM=$(find /tmp/akmods-rpms -type f -name "*evdi*.rpm")
+
+if [ -z "$EVDI_RPM" ]; then
+    echo "Error: evdi RPM not found in akmods repo. Contents:"
+    find /tmp/akmods-rpms
+    exit 1
+fi
+
+# Install found evdi
+dnf5 -y install $EVDI_RPM
 rm -rf /tmp/akmods-rpms
 
 # Install packages
