@@ -12,7 +12,8 @@ set -ouex pipefail
 # this installs a package from fedora repos
 
 dnf5 -y copr enable yalter/niri
-dnf5 -y copr enable avengemedia/dms
+dnf5 -y copr enable duxlabs/dms
+dnf5 -y copr enable duxlabs/dux-repo
 dnf5 -y copr enable crashdummy/Displaylink
 dnf5 -y copr enable scottames/ghostty
 dnf5 -y copr enable scottames/vicinae
