@@ -15,7 +15,6 @@ COPR_REPOS=(
     duxlabs/dms
     duxlabs/dux-repo
     crashdummy/Displaylink
-    scottames/ghostty
     scottames/vicinae
 )
 
