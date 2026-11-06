@@ -26,18 +26,8 @@ done
 # Remove conflicting packages
 # dnf5 -y remove dkms-logitech-trueforce logitech-trueforce
 
-# Find evdi in akmods repo
-EVDI_RPM=$(find /tmp/akmods-rpms -type f -name "*evdi*.rpm")
-
-if [ -z "$EVDI_RPM" ]; then
-    echo "Error: evdi RPM not found in akmods repo. Contents:"
-    find /tmp/akmods-rpms
-    exit 1
-fi
-
-# Install found evdi
-dnf5 -y install $EVDI_RPM
-rm -rf /tmp/akmods-rpms
+# Install evdi
+dnf5 -y install kmod-evdi
 
 # Install packages
 dnf5 -y install displaylink dms ghostty niri vicinae wiremix wl-mirror tailscale
