@@ -35,5 +35,8 @@ for repo in "${COPR_REPOS[@]}"; do
     dnf5 -y copr disable "$repo"
 done
 
+# Disable dkms as it is not needed (only for dependency)
+systemctl disable dkms.service
+
 # Enable systemd services in a single command
-systemctl enable podman.socket tailscaled virtqemud virtnetworkd virtstoraged displaylink
+systemctl enable podman.socket tailscaled virtqemud virtnetworkd virtstoraged
