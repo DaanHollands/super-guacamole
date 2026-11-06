@@ -26,6 +26,10 @@ done
 # Remove conflicting packages
 dnf5 -y remove dkms-logitech-trueforce logitech-trueforce
 
+# Install evdi from akmods repo
+dnf5 -y install /tmp/akmods-rpms/kmods/*evdi*.rpm
+rm -rf /tmp/akmods-rpms
+
 # Install packages
 dnf5 -y install displaylink dms ghostty niri vicinae wiremix wl-mirror tailscale
 dnf5 -y group install virtualization
