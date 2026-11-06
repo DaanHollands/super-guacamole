@@ -38,8 +38,9 @@ done
 # Disable dkms as it is not needed (only for dependency)
 systemctl disable dkms.service
 
-# Remove remains of dkms/displaylink install
-rm -rf /var/lib/dkms/evdi /var/log/displaylink
-
 # Enable systemd services in a single command
 systemctl enable podman.socket tailscaled virtqemud virtnetworkd virtstoraged displaylink-driver
+
+# Cleanup files from install
+rm -rf /var/lib/dnf /var/lib/dkms /var/log/displaylink
+find /run -mindepth 1 -delete 2>/dev/null || true
