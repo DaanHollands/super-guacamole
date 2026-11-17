@@ -49,24 +49,45 @@ jobs:
       - name: Get Bazzite base image version
         id: bazzite
         run: |
-          # Read the image reference from the first FROM instruction in Containerfile
-          BASE_REF=$(awk '/^FROM[[:space:]]+/ {print $2; exit}' ./Containerfile)
+          # Prefer a FROM line referencing ublue-os or bazzite (skipping FROM scratch AS ctx)
+          BASE_REF=$(awk '/^FROM[[:space:]]+/ {
+            for (i=2; i<=NF; i++) {
+              if ($i ~ /^--/) continue;
+              if ($i ~ /(ublue-os|bazzite)/) { print $i; exit }
+              break;
+            }
+          }' ./Containerfile)
+
+          # Fallback to the last non-scratch FROM image if none matched above
+          if [[ -z "$BASE_REF" ]]; then
+            BASE_REF=$(awk '/^FROM[[:space:]]+/ {
+              for (i=2; i<=NF; i++) {
+                if ($i ~ /^--/) continue;
+                if ($i != "scratch") img=$i;
+                break;
+              }
+            } END { print img }' ./Containerfile)
+          fi
 
           # Fallback if Containerfile uses ARG variables in FROM (adjust variant/tag if needed)
           if [[ -z "$BASE_REF" || "$BASE_REF" == *'$'* ]]; then
             BASE_REF="ghcr.io/ublue-os/bazzite:stable"
           fi
 
+          echo "Inspecting base image: ${BASE_REF}"
+          INSPECT_JSON=$(skopeo inspect "docker://${BASE_REF}")
+
           # Query the remote image's OCI version label without pulling layers
-          BZ_VER=$(skopeo inspect "docker://${BASE_REF}" | jq -r '.Labels["org.opencontainers.image.version"] // empty')
+          BZ_VER=$(printf '%s' "$INSPECT_JSON" | jq -r '.Labels["org.opencontainers.image.version"] // empty')
 
           # Fallback to the latest versioned tag on the registry if the label is missing
           if [[ -z "$BZ_VER" ]]; then
-            BZ_VER=$(skopeo inspect "docker://${BASE_REF}" | jq -r '.RepoTags[]' | grep -E '^[0-9]' | sort -V | tail -n1)
+            BZ_VER=$(printf '%s' "$INSPECT_JSON" | jq -r '.RepoTags[]' | grep -E '^[0-9]' | sort -V | tail -n1)
           fi
 
           # Sanitize characters to ensure a valid OCI tag
           BZ_VER=$(printf '%s' "${BZ_VER:-unknown}" | tr -c 'a-zA-Z0-9_.-' '-')
+          echo "Detected Bazzite version: ${BZ_VER}"
           echo "version=${BZ_VER}" >> "$GITHUB_OUTPUT"
 
       # This is optional, but if you see that your builds are way too big for the runners, you can enable this by uncommenting the following lines:
