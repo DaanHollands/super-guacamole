@@ -5,7 +5,7 @@ on:
     branches:
       - main
   schedule:
-    - cron: '05 10 * * 1' 
+    - cron: '05 10 * * 1'  # 10:05am UTC every Monday
   push:
     branches:
       - main
@@ -22,7 +22,7 @@ env:
   DEFAULT_TAG: "latest"
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}-${{ inputs.brand_name}}-${{ inputs.stream_name }}
+  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}-${{ inputs.brand_name }}-${{ inputs.stream_name }}
   cancel-in-progress: true
 
 jobs:
@@ -46,6 +46,29 @@ jobs:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
+      - name: Get Bazzite base image version
+        id: bazzite
+        run: |
+          # Read the image reference from the first FROM instruction in Containerfile
+          BASE_REF=$(awk '/^FROM[[:space:]]+/ {print $2; exit}' ./Containerfile)
+
+          # Fallback if Containerfile uses ARG variables in FROM (adjust variant/tag if needed)
+          if [[ -z "$BASE_REF" || "$BASE_REF" == *'$'* ]]; then
+            BASE_REF="ghcr.io/ublue-os/bazzite:stable"
+          fi
+
+          # Query the remote image's OCI version label without pulling layers
+          BZ_VER=$(skopeo inspect "docker://${BASE_REF}" | jq -r '.Labels["org.opencontainers.image.version"] // empty')
+
+          # Fallback to the latest versioned tag on the registry if the label is missing
+          if [[ -z "$BZ_VER" ]]; then
+            BZ_VER=$(skopeo inspect "docker://${BASE_REF}" | jq -r '.RepoTags[]' | grep -E '^[0-9]' | sort -V | tail -n1)
+          fi
+
+          # Sanitize characters to ensure a valid OCI tag
+          BZ_VER=$(printf '%s' "${BZ_VER:-unknown}" | tr -c 'a-zA-Z0-9_.-' '-')
+          echo "version=${BZ_VER}" >> "$GITHUB_OUTPUT"
+
       # This is optional, but if you see that your builds are way too big for the runners, you can enable this by uncommenting the following lines:
       - name: Maximize build space
         uses: ublue-os/remove-unwanted-software@695eb75bc387dbcd9685a8e72d23439d8686cba6
@@ -65,12 +88,9 @@ jobs:
         uses: docker/metadata-action@80c7e94dd9b9319bd5eb7a0e0fe9291e23a2a2e9 # v6.1.0
         id: metadata
         with:
-          # This generates all the tags for your image, you can add custom tags here too!
-          # Default tags are "$DEFAULT_TAG" and "$DEFAULT_TAG.$date".
           tags: |
             type=raw,value=${{ env.DEFAULT_TAG }}
-            type=raw,value=${{ env.DEFAULT_TAG }}.{{date 'YYYYMMDD'}}
-            type=raw,value={{date 'YYYYMMDD'}}
+            type=raw,value={{date 'YYYYMMDD'}}-bz-${{ steps.bazzite.outputs.version }}
             type=sha,enable=${{ github.event_name == 'pull_request' }}
             type=ref,event=pr
           labels: |
@@ -82,7 +102,7 @@ jobs:
             org.opencontainers.image.title=${{ env.IMAGE_NAME }}
             org.opencontainers.image.url=https://github.com/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}/tree/${{ github.sha }}
             org.opencontainers.image.vendor=${{ github.repository_owner }}
-            org.opencontainers.image.version=${{ env.DEFAULT_TAG }}.{{date 'YYYYMMDD'}}
+            org.opencontainers.image.version={{date 'YYYYMMDD'}}-bz-${{ steps.bazzite.outputs.version }}
             io.artifacthub.package.deprecated=false
             io.artifacthub.package.keywords=${{ env.IMAGE_KEYWORDS }}
             io.artifacthub.package.license=Apache-2.0
